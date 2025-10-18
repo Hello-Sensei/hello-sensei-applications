@@ -1,3 +1,4 @@
 ﻿*.iml
 .idea
 --docker--/docker-compose/mongodb/mongo_data
+.github/workflows/.env

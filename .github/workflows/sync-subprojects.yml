@@ -1,0 +1,71 @@
+name: Sync subprojects to external repos
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout master repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync admins-app
+        uses: cpina/github-action-push-to-another-repository@v1.7.3
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+        with:
+          source-directory: 'front-end/admins-app'
+          destination-github-username: 'Hello-Sensei'
+          destination-repository-name: 'admins-app'
+          target-branch: 'master'
+          create-target-branch-if-needed: true
+          commit-message: 'Auto-sync from mono-repo: ${{ github.event.head_commit.message }}'
+
+      - name: Sync teachers-app
+        uses: cpina/github-action-push-to-another-repository@v1.7.3
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+        with:
+          source-directory: 'front-end/teachers-app'
+          destination-github-username: 'Hello-Sensei'
+          destination-repository-name: 'teachers-app'
+          target-branch: 'master'
+          create-target-branch-if-needed: true
+          commit-message: 'Auto-sync from mono-repo: ${{ github.event.head_commit.message }}'
+
+      - name: Sync users-app
+        uses: cpina/github-action-push-to-another-repository@v1.7.3
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+        with:
+          source-directory: 'front-end/users-app'
+          destination-github-username: 'Hello-Sensei'
+          destination-repository-name: 'users-app'
+          target-branch: 'master'
+          create-target-branch-if-needed: true
+          commit-message: 'Auto-sync from mono-repo: ${{ github.event.head_commit.message }}'
+
+      - name: Sync video-uploader
+        uses: cpina/github-action-push-to-another-repository@v1.7.3
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+        with:
+          source-directory: 'microservices/video-uploader'
+          destination-github-username: 'Hello-Sensei'
+          destination-repository-name: 'video-uploader'
+          target-branch: 'master'
+          create-target-branch-if-needed: true
+          commit-message: 'Auto-sync from mono-repo: ${{ github.event.head_commit.message }}'
