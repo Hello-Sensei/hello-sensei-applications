@@ -1,3 +1,42 @@
 spring:
   application:
     name: video-uploader
+  data:
+    mongodb:
+      auto-index-creation: true
+      host: localhost
+      port: 27017
+      username: root
+      password: rootpassword
+      authentication-database: admin
+      database: videos_uploader
+      # uri: mongodb://localhost:27017/videos_uploader
+      # username: root
+      # password: rootpassword
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+    template:
+      exchange: video-exchange
+      routingKey: video.uploaded
+
+logging:
+  level:
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    com.mongodb.reactivestreams.client: DEBUG
+    org.mongodb.driver.protocol.command: DEBUG
+    org.mongodb.driver.connection: DEBUG
+
+
+app:
+  storage:
+    type: local           # "local" or "s3"
+    local:
+      base-dir: D:\\WORKSPACE\\videos samples\\storage
+    s3:
+      bucket: my-bucket
+      region: eu-west-1

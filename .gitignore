@@ -1,2 +1,3 @@
 ﻿*.iml
 .idea
+--docker--/docker-compose/mongodb/mongo_data
