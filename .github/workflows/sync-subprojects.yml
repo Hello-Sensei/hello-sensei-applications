@@ -69,3 +69,16 @@ jobs:
           target-branch: 'master'
           create-target-branch-if-needed: true
           commit-message: 'Auto-sync from mono-repo: ${{ github.event.head_commit.message }}'
+
+
+      - name: Sync video-converter
+        uses: cpina/github-action-push-to-another-repository@v1.7.3
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+        with:
+          source-directory: 'microservices/video-converter'
+          destination-github-username: 'Hello-Sensei'
+          destination-repository-name: 'video-converter'
+          target-branch: 'master'
+          create-target-branch-if-needed: true
+          commit-message: 'Auto-sync from mono-repo: ${{ github.event.head_commit.message }}'
