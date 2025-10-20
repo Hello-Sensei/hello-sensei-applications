@@ -2,3 +2,6 @@
 .idea
 --docker--/docker-compose/mongodb/mongo_data
 .github/workflows/.env
+*.exe
+**/mongo_data
+**/converts/*.mp4
