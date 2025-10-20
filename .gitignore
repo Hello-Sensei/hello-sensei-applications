@@ -5,3 +5,4 @@
 *.exe
 **/mongo_data
 **/converts/*.mp4
+**/--dev--/**/*.mp4
