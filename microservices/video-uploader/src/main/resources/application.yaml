@@ -3,16 +3,15 @@ spring:
     name: video-uploader
   data:
     mongodb:
-      auto-index-creation: true
+      #uri: mongodb://localhost:27017/videos_uploader
       host: localhost
-      port: 27017
+      database: videos
+      authentication-database: admin
       username: root
       password: rootpassword
-      authentication-database: admin
-      database: videos_uploader
-      # uri: mongodb://localhost:27017/videos_uploader
-      # username: root
-      # password: rootpassword
+      auto-index-creation: true
+      port: 27017
+
 
   rabbitmq:
     host: localhost
@@ -20,8 +19,12 @@ spring:
     username: guest
     password: guest
     template:
-      exchange: video-exchange
-      routingKey: video.uploaded
+      # Optional: define default exchange and routing key for template if needed
+      exchange: video-converted-exchange
+      routing-key: video.converted
+    listener:
+      simple:
+        acknowledge-mode: auto
 
 logging:
   level:
@@ -33,10 +36,22 @@ logging:
 
 
 app:
+  rabbit:
+    exchange:
+      upload: video-exchange
+      convert: video-converted-exchange
+    queues:
+      upload: video-uploaded-queue
+      convert: video-converted-queue
+    routingKeys:
+      upload: video.uploaded
+      convert: video.converted
   storage:
     type: local           # "local" or "s3"
     local:
-      base-dir: D:\\WORKSPACE\\videos samples\\storage
+      base-dir: microservices/--dev--/storage
     s3:
       bucket: my-bucket
       region: eu-west-1
+  ffmpeg:
+    path: microservices/--dev--/codecs/ffmpeg-7.1.1/ffprobe.exe      # relative to project root (or /opt/app in Docker)
