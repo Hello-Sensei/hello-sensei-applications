@@ -33,15 +33,20 @@
         </dependency>
 
         <dependency>
+            <groupId>io.v47.jaffree</groupId>
+            <artifactId>jaffree</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>eu.dreamlabs.libs</groupId>
-            <artifactId>mappers-helper</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>eu.dreamlabs.libs</groupId>-->
+<!--            <artifactId>mappers-helper</artifactId>-->
+<!--            <version>0.0.1-SNAPSHOT</version>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>

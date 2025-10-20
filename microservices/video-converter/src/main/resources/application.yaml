@@ -1,0 +1,42 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: video-converter
+  data:
+    mongodb:
+      host: localhost
+      database: videos
+      authentication-database: admin
+      username: root
+      password: rootpassword
+      auto-index-creation: true
+      port: 27017
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    template:
+      exchange: video-converted-exchange
+      routingKey: video.converted
+    listener:
+      simple:
+        acknowledge-mode: auto
+
+app:
+  rabbit:
+    exchange:
+      upload: video-exchange          # same as uploader sends to
+      convert: video-converted-exchange
+    queues:
+      upload: video-uploaded-queue    # matches RabbitListener queue
+      convert: video-converted-queue
+    routingKeys:
+      upload: video.uploaded          # matches binding
+      convert: video.converted
+
+  ffmpeg:
+    path: microservices/--dev--/codecs/ffmpeg-7.1.1/ffmpeg.exe       # relative to project root (or /opt/app in Docker)
+    output-dir: microservices/--dev--/converts
