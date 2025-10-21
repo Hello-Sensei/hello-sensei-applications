@@ -21,9 +21,23 @@ public class RabbitConfig {
     @Value("${app.rabbit.routingKeys.upload}")
     private String uploadRoutingKey;
 
+    @Value("${app.rabbit.exchange.convert}")
+    private String convertExchange;
+
+    @Value("${app.rabbit.queues.convert}")
+    private String convertQueue;
+
+    @Value("${app.rabbit.routingKeys.convert}")
+    private String convertRoutingKey;
+
     @Bean
     public Queue uploadQueue() {
         return new Queue(uploadQueue, true);
+    }
+
+    @Bean
+    public Queue convertQueue() {
+        return new Queue(convertQueue, true);
     }
 
     @Bean
@@ -32,8 +46,18 @@ public class RabbitConfig {
     }
 
     @Bean
+    public DirectExchange convertExchange() {
+        return new DirectExchange(convertExchange);
+    }
+
+    @Bean
     public Binding uploadBinding(Queue uploadQueue, DirectExchange uploadExchange) {
         return BindingBuilder.bind(uploadQueue).to(uploadExchange).with(uploadRoutingKey);
+    }
+
+    @Bean
+    public Binding convertBinding(Queue convertQueue, DirectExchange convertExchange) {
+        return BindingBuilder.bind(convertQueue).to(convertExchange).with(convertRoutingKey);
     }
 
     @Bean
