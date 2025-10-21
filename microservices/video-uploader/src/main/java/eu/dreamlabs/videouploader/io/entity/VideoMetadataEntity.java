@@ -1,5 +1,6 @@
 package eu.dreamlabs.videouploader.io.entity;
 
+import eu.dreamlabs.videouploader.domain.ConvertedVideo;
 import eu.dreamlabs.videouploader.domain.enums.VideoResolution;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -8,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 
 
 @Getter @Setter
@@ -26,6 +28,8 @@ public class VideoMetadataEntity implements Serializable {
     private Instant uploadedAt;
     private VideoResolution resolution;
     private String uploaderId; // optional: user id
+    private List<ConvertedVideo> convertedPaths; // <-- NEW
+
 
     public VideoMetadataEntity(
             String originalFilename,

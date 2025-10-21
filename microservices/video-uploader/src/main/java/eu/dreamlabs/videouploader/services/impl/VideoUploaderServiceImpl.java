@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -45,7 +46,8 @@ public class VideoUploaderServiceImpl
     @Override
     public Mono<VideoMetadataEntity> uploadVideo(String uploaderId, FilePart filePart) {
         Path storageDir = Paths.get(uploadDir).toAbsolutePath();
-        Path targetPath = storageDir.resolve(filePart.filename());
+        String uniqueFilename = UUID.randomUUID() + "-" + filePart.filename();
+        Path targetPath = storageDir.resolve(uniqueFilename);
 
         // Step 1: Ensure storage directory exists (blocking wrapped in boundedElastic)
         Mono<Path> ensureDir = Mono.fromCallable(() -> {
