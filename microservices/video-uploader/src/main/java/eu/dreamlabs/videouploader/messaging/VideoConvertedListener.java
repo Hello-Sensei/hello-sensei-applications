@@ -1,7 +1,9 @@
 package eu.dreamlabs.videouploader.messaging;
 
+import eu.dreamlabs.videouploader.domain.enums.VideoStatus;
 import eu.dreamlabs.videouploader.io.entity.VideoMetadataEntity;
 import eu.dreamlabs.videouploader.io.repository.VideoMetadataRepository;
+import eu.dreamlabs.videouploader.services.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class VideoConvertedListener {
     private final VideoMetadataRepository videoMetadataRepository;
+    private final VideoService videoService;
 
     @RabbitListener(
             queues = "${app.rabbit.queues.convert}",
@@ -26,8 +29,14 @@ public class VideoConvertedListener {
                     existing.setConvertedPaths(convertedVideo.getConvertedPaths());
                     return videoMetadataRepository.save(existing);
                 })
-                .doOnSuccess(v -> log.info("✅ Updated convertedPaths for videoId={}", v.getId()))
-                .doOnError(e -> log.error("❌ Failed to update convertedPaths", e))
+                .doOnSuccess(saved -> {
+                    log.info("✅ Updated convertedPaths for videoId={}", saved.getId());
+                    videoService.emitStatus(saved.getId(), VideoStatus.CONVERSION_COMPLETE);
+                })
+                .doOnError(e -> {
+                    log.error("❌ Failed to update convertedPaths", e);
+                    videoService.emitStatus(convertedVideo.getId(), VideoStatus.CONVERSION_FAILED);
+                })
                 .subscribe();
     }
 //

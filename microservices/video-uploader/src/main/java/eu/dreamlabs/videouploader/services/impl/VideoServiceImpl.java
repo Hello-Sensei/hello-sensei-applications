@@ -6,33 +6,39 @@ import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
 import com.github.kokorin.jaffree.ffprobe.Stream;
 import eu.dreamlabs.videouploader.config.RabbitMQUtil;
 import eu.dreamlabs.videouploader.domain.enums.VideoResolution;
+import eu.dreamlabs.videouploader.domain.enums.VideoStatus;
 import eu.dreamlabs.videouploader.io.entity.VideoMetadataEntity;
 import eu.dreamlabs.videouploader.io.repository.VideoMetadataRepository;
-import eu.dreamlabs.videouploader.services.VideoUploaderService;
+import eu.dreamlabs.videouploader.services.VideoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
-public class VideoUploaderServiceImpl
-        implements VideoUploaderService {
+public class VideoServiceImpl
+        implements VideoService {
     private final VideoMetadataRepository videoMetadataRepository;
     private final RabbitMQUtil rabbitMQUtil;
     private final Environment environment;
+    private final Map<String, Sinks.Many<VideoStatus>> statusStreams;
     private String uploadDir;
 
-    public VideoUploaderServiceImpl(
+    public VideoServiceImpl(
             VideoMetadataRepository videoMetadataRepository,
             RabbitMQUtil rabbitMQUtil,
             Environment environment) {
@@ -40,6 +46,7 @@ public class VideoUploaderServiceImpl
         this.rabbitMQUtil = rabbitMQUtil;
         this.environment = environment;
         this.uploadDir = environment.getProperty("app.storage.local.base-dir");
+        this.statusStreams = new ConcurrentHashMap<>();
 
     }
 
@@ -80,7 +87,12 @@ public class VideoUploaderServiceImpl
                                                     .doOnSuccess(rabbitMQUtil::publishVideoConversionRequest);
                                         })
                         )
-        ).doOnError(e -> log.error("Failed to upload video {}", filePart.filename(), e));
+                )
+                .doOnSuccess(saved -> {
+                    rabbitMQUtil.publishVideoConversionRequest(saved);
+                    emitStatus(saved.getId(), VideoStatus.UPLOAD_COMPLETE);
+                })
+                .doOnError(e -> log.error("Failed to upload video {}", filePart.filename(), e));
     }
 
     /**
@@ -128,5 +140,29 @@ public class VideoUploaderServiceImpl
     public Mono<List<VideoMetadataEntity>> getAllVideos() {
         return videoMetadataRepository.findAll()
                 .collectList();
+    }
+
+    /**
+     * Get or create the event stream for a videoId
+     */
+    @Override
+    public Flux<VideoStatus> streamStatus(String videoId) {
+        Sinks.Many<VideoStatus> sink = statusStreams.computeIfAbsent(videoId,
+                id -> Sinks.many().multicast().onBackpressureBuffer());
+        return sink.asFlux();
+    }
+
+    /**
+     * Emit a status update for a video
+     */
+    @Override
+    public void emitStatus(String videoId, VideoStatus status) {
+        Sinks.Many<VideoStatus> sink = statusStreams.get(videoId);
+        if (sink != null) {
+            log.info("📡 Emitting status {} for videoId={}", status, videoId);
+            sink.tryEmitNext(status);
+        } else {
+            log.warn("⚠️ No active subscribers for videoId={}, skipping status {}", videoId, status);
+        }
     }
 }
